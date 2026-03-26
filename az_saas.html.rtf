@@ -1,0 +1,196 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2639
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset0 AppleColorEmoji;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww40760\viewh22720\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 <!DOCTYPE html>\
+<html lang="de">\
+<head>\
+<meta charset="UTF-8">\
+<title>AZ SaaS System</title>\
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>\
+\
+<style>\
+body\{font-family:Arial;background:#0f172a;color:white;margin:0;\}\
+header\{background:black;color:gold;padding:15px;text-align:center;font-size:22px;\}\
+.container\{padding:20px;\}\
+.card\{background:#1e293b;padding:15px;border-radius:12px;margin-bottom:15px;\}\
+input,button,select\{padding:10px;margin:5px 0;border-radius:8px;border:none;width:100%;\}\
+button\{background:gold;font-weight:bold;cursor:pointer;\}\
+.hidden\{display:none;\}\
+</style>\
+</head>\
+\
+<body>\
+\
+<header>
+\f1 \uc0\u55357 \u56508 
+\f0  AZ BUSINESS SYSTEM</header>\
+\
+<div class="container">\
+\
+<!-- LOGIN -->\
+<div class="card" id="loginBox">\
+<h3>
+\f1 \uc0\u55357 \u56592 
+\f0  Login</h3>\
+<input id="user" placeholder="Username">\
+<input id="pass" type="password" placeholder="Password">\
+<button onclick="login()">Login</button>\
+</div>\
+\
+<!-- APP -->\
+<div id="app" class="hidden">\
+\
+<div class="card">\
+<h3>
+\f1 \uc0\u55357 \u56522 
+\f0  Dashboard</h3>\
+<p id="rev"></p>\
+<p id="prof"></p>\
+<p id="ordersCount"></p>\
+<canvas id="chart"></canvas>\
+</div>\
+\
+<div class="card">\
+<h3>
+\f1 \uc0\u55357 \u56550 
+\f0  Produkt</h3>\
+<input id="pName" placeholder="Name">\
+<input id="pCat" placeholder="Kategorie">\
+<input id="pEK" placeholder="EK">\
+<input id="pVK" placeholder="VK">\
+<input id="pAmount" placeholder="Menge">\
+<button onclick="addProduct()">Speichern</button>\
+</div>\
+\
+<div class="card">\
+<h3>
+\f1 \uc0\u55357 \u56420 
+\f0  Kunde</h3>\
+<input id="cName" placeholder="Name">\
+<input id="cCity" placeholder="Stadt">\
+<input id="cAddress" placeholder="Adresse">\
+<button onclick="addCustomer()">Speichern</button>\
+</div>\
+\
+<div class="card">\
+<h3>
+\f1 \uc0\u55357 \u57042 
+\f0  Bestellung</h3>\
+<input id="oCustomer" placeholder="Kunde">\
+<input id="oProduct" placeholder="Produkt">\
+<input id="oAmount" placeholder="Menge">\
+<input id="oTrack" placeholder="Trackingnummer">\
+<select id="oStatus">\
+<option>offen</option>\
+<option>bezahlt</option>\
+<option>versendet</option>\
+</select>\
+<button onclick="order()">Erstellen</button>\
+</div>\
+\
+<div class="card"><h3>
+\f1 \uc0\u55357 \u56550 
+\f0  Produkte</h3><div id="products"></div></div>\
+<div class="card"><h3>
+\f1 \uc0\u55357 \u56420 
+\f0  Kunden</h3><div id="customers"></div></div>\
+<div class="card"><h3>
+\f1 \uc0\u55358 \u56830 
+\f0  Orders</h3><div id="orders"></div></div>\
+\
+</div>\
+\
+</div>\
+\
+<script>\
+\
+let db = JSON.parse(localStorage.getItem("db")) || \{\
+products:[],customers:[],orders:[],revenue:0,profit:0\
+\};\
+\
+function save()\{localStorage.setItem("db",JSON.stringify(db));\}\
+\
+function login()\{\
+if(user.value==="admin" && pass.value==="1234")\{\
+loginBox.style.display="none";\
+app.classList.remove("hidden");\
+render();\
+\}else alert("Falsch");\
+\}\
+\
+function addProduct()\{\
+db.products.push(\{\
+name:pName.value,cat:pCat.value,ek:+pEK.value,vk:+pVK.value,amount:+pAmount.value\
+\});\
+save(); render();\
+\}\
+\
+function addCustomer()\{\
+db.customers.push(\{\
+name:cName.value,city:cCity.value,address:cAddress.value\
+\});\
+save(); render();\
+\}\
+\
+function order()\{\
+let p=db.products.find(x=>x.name===oProduct.value);\
+let a=+oAmount.value;\
+if(!p) return alert("Produkt fehlt");\
+if(p.amount<a) return alert("Zu wenig");\
+\
+p.amount-=a;\
+\
+let rev=p.vk*a;\
+let prof=(p.vk-p.ek)*a;\
+\
+db.revenue+=rev;\
+db.profit+=prof;\
+\
+db.orders.push(\{\
+customer:oCustomer.value,product:oProduct.value,amount:a,\
+status:oStatus.value,track:oTrack.value,profit:prof,date:new Date().toLocaleDateString()\
+\});\
+\
+save(); render();\
+\}\
+\
+function render()\{\
+\
+products.innerHTML=db.products.map(p=>`\
+<div>$\{p.name\} ($\{p.cat\}) - $\{p.amount\} Stk</div>`).join("");\
+\
+customers.innerHTML=db.customers.map(c=>`\
+<div>$\{c.name\} - $\{c.city\}</div>`).join("");\
+\
+orders.innerHTML=db.orders.map(o=>`\
+<div>\
+<b>$\{o.customer\}</b> - $\{o.product\} x$\{o.amount\}<br>\
+Status:$\{o.status\} | Tracking:$\{o.track\}<br>\
+Datum:$\{o.date\} | Gewinn:$\{o.profit\}\'80\
+</div>`).join("");\
+\
+rev.innerText="Umsatz: "+db.revenue+"\'80";\
+prof.innerText="Gewinn: "+db.profit+"\'80";\
+ordersCount.innerText="Orders: "+db.orders.length;\
+\
+drawChart();\
+\}\
+\
+function drawChart()\{\
+let ctx=document.getElementById("chart");\
+let data=db.orders.map((o,i)=>i+1);\
+let values=db.orders.map(o=>o.profit);\
+\
+new Chart(ctx,\{type:"line",\
+data:\{labels:data,datasets:[\{label:"Gewinn",data:values\}]\}\
+\});\
+\}\
+\
+</script>\
+\
+</body>\
+</html>}
